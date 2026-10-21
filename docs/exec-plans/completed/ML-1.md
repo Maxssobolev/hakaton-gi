@@ -1,6 +1,6 @@
 # ML Foundation — аудит, протокол и два baseline
 
-Статус: после независимого ревью R1 — **FIXES REQUIRED**; исправления и проверки R2 опубликованы, повторное ревью и принятие владельцем ожидаются. Изначальный план назывался ML-1 и объединял работы, которые обновлённая [дорожная карта](../../ML_PLAN.md) обозначает ML-1 Data Audit/EDA, ML-2 Validation Protocol и ML-3 Baseline Models. План сохраняется как единый контрольный пакет. Закрытие требует фактических проверок, независимого ревью и принятия владельцем согласно [WORKFLOW](../../WORKFLOW.md).
+Статус: **завершён 2026-10-21** после вердикта независимого ревью R2 **APPROVE / READY** по HEAD `08fb61dc0e4dd3fd5650bd8c74110fcb6eff4106` и принятия владельцем. Изначальный план назывался ML-1 и объединял работы, которые обновлённая [дорожная карта](../../ML_PLAN.md) обозначает ML-1 Data Audit/EDA, ML-2 Validation Protocol и ML-3 Baseline Models.
 
 ## Цель
 
@@ -31,7 +31,7 @@
 - `python -m py_compile ml/*.py`, проверка Markdown-ссылок (29 файлов), `git diff --check`, `git check-ignore` исходных данных и артефактов — PASS.
 - После R1: `.venv/bin/python -W error::ResourceWarning -m unittest discover -s tests -v` — PASS, 10 синтетических тестов, около 1,34 с. Есть отрицательные проверки повреждения/подмены кеша, старой версии и изменения TRAIN.
 - После R1: кеш версии 2 пересобран без обучения моделей; `OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.verify --artifact-dir artifacts/ml-1 --data-dir .` — PASS: полное сравнение TRAIN и кеша, split, загрузка моделей, исходные ROC-AUC/AP совпали.
-- R1 независимый вердикт — FIXES REQUIRED. R2 опубликован, но ещё не проверен независимо; принятие владельцем — не получено. План не закрыт.
+- R1 независимый вердикт — FIXES REQUIRED. По сообщению владельца, R2 получил APPROVE / READY; владелец принял ML Foundation и разрешил ML-4.
 
 ## Ход работы
 
@@ -48,8 +48,12 @@
 ## Ревью и решение владельца
 
 - Git-снимок для reviewer: [draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1), base SHA `1583412ba2bbf742ae28929315fd5a4ecb5170c8`, первоначальный head SHA `909ca6a5ae9f4c3306a896b4ec6c76dcaa8b8927`; актуальный tip ветки виден в PR.
-- Независимое ревью ChatGPT R1: FIXES REQUIRED, 0 Blocker / 2 Important / 3 Minor. Исправления отражены в [R2](../../REVIEW_PACKAGE_ML_FOUNDATION_R2.md), повторного вердикта пока нет.
-- Разрешение на публикацию исходного checkpoint и отдельное разрешение на commit/push R2 получены 2026-10-21. Повторное независимое ревью и принятие результата этапа ещё не получены.
+- Независимое ревью ChatGPT R1: FIXES REQUIRED, 0 Blocker / 2 Important / 3 Minor. Исправления отражены в [R2](../../REVIEW_PACKAGE_ML_FOUNDATION_R2.md). Владелец сообщил о независимом вердикте R2 APPROVE / READY по HEAD `08fb61dc0e4dd3fd5650bd8c74110fcb6eff4106` и принял этап 2026-10-21. Полный текст заключения R2 в репозитории отсутствует; вердикт записан по решению владельца.
+- Ранее полученные разрешения на публикацию относились к ML Foundation. Для ML-4 commit, push, merge и публикация отдельно не разрешены.
+
+## Результат
+
+Технические критерии и прежние проверки отражены выше и в [журнале](../../ML_EXPERIMENTS.md). По решению владельца план перенесён в `completed/`; дальнейшая работа ведётся по [ML-4](../active/ML-4.md).
 
 ## Риски
 

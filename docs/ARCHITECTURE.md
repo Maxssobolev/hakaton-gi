@@ -1,5 +1,9 @@
 # Архитектура
 
+## Срочная поставка 2026-10-21
+
+Реализованы `ml.inference` (numpy/LightGBM, без training imports), `ml.delivery` (frozen full-TRAIN refit), `ml.make_submission` (streaming TEST + строгая повторная проверка), `ml.package_delivery` (offline package). Контракт — [ML_HANDOFF](ML_HANDOFF.md). `ml.text_features` пишет disk-backed CSR без vocabulary/IDF; `ml.text_experiment` использует только train folds и фиксированный OOF blend, fallback по usable-text indicator. Историческое описание ниже относится к предыдущему состоянию.
+
 ## Реализуемый сейчас поток
 
 `TRAIN.csv` → проверка схемы → групповой development/holdout split по хэшу вектора признаков → предобработка внутри development → SGD Logistic Regression / CatBoost → метрики и локальные артефакты.
@@ -7,6 +11,10 @@
 Код ML находится в `ml/`; команды и зависимости — в корневом README. Исходные данные не меняются. `artifacts/` содержит локальные отчёты, модели и схемы и не попадает в Git. Журнал подтверждённых запусков — [ML_EXPERIMENTS.md](ML_EXPERIMENTS.md). Ветка текста и финальный inference contract пока не реализованы.
 
 `ml/cache.py` создаёт временные массивы из TRAIN.csv, проверяет их и публикует манифест последним. Кеш привязан к SHA-256 TRAIN, хэшу упорядоченной схемы и версии преобразования; при повторном обучении проверяются формат и SHA-256 файлов массивов. Повреждённый или старый кеш пересобирается с явным сообщением. `ml.verify` отдельно потоково сравнивает **каждую** строку признаков, меток и групповых хэшей с TRAIN.csv; эта полная проверка выполняется для контрольного этапа, а не при каждом предсказании модели.
+
+ML-4 повторно использует принятый кеш и только позиции development. `ml.optimize_tabular` распределяет группы одинаковых векторов по трём validation folds, выделяет отдельный групповой stop split внутри training fold, обучает CatBoost/LightGBM и сохраняет каждый preset в уникальный локальный каталог с моделями, снимком runner и JSON-метриками. `ml.diagnose_ml4` пишет агрегаты development; `ml.verify_ml4` повторно загружает выбранные модели и воспроизводит validation метрики. Внешний holdout не входит в этот поток. Протокол и результаты — в [ML_VALIDATION](ML_VALIDATION.md) и [ML_EXPERIMENTS](ML_EXPERIMENTS.md).
+
+Вторая серия использует тот же runner с тремя заранее заданными повторениями CV. Новые LightGBM runs сохраняют `foldN.training.json` с AUC stopping history, выбранной итерацией и нативными параметрами refit; `results.json` связывает их и модели SHA-256. Проверка воспроизводит train/validation ROC-AUC/AP/gap, подтверждает число деревьев и фактически применённые параметры. Исторические run-каталоги остаются неизменными.
 
 ## Целевая ML-подсистема и передача
 

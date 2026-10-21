@@ -1,10 +1,10 @@
 # Review package: ML Foundation
 
-**Дата подготовки:** 2026-10-21. **Stage ID:** ML-1–ML-3 по текущей [дорожной карте](ML_PLAN.md); один исходный [активный план ML-1](exec-plans/active/ML-1.md). **Название:** Data Audit / EDA + Validation Protocol + Baseline Models. **Статус:** исходный пакет R1 опубликован в draft PR; независимое ревью вернуло FIXES REQUIRED. Исправления опубликованы и описаны в [пакете R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md), owner acceptance не получено.
+**Дата подготовки:** 2026-10-21. **Stage ID:** ML-1–ML-3 по текущей [дорожной карте](ML_PLAN.md); один исходный [закрытый план ML-1](exec-plans/completed/ML-1.md). **Название:** Data Audit / EDA + Validation Protocol + Baseline Models. **История:** исходный пакет R1 получил FIXES REQUIRED; исправления описаны в [пакете R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md). По решению владельца от 2026-10-21 R2 получил APPROVE / READY и ML Foundation принят.
 
 ## Цель и критерии принятия
 
-Создать воспроизводимую исходную точку для дальнейшего ML: подтвердить схему данных, исключить известные пересечения идентичных векторов между development и holdout, обучить два baseline на одном split, сохранить модели и повторить прогнозы после загрузки. Критерии перечислены в [активном плане](exec-plans/active/ML-1.md). Это контрольный пакет, а не финальная модель или переносимый inference package.
+Создать воспроизводимую исходную точку для дальнейшего ML: подтвердить схему данных, исключить известные пересечения идентичных векторов между development и holdout, обучить два baseline на одном split, сохранить модели и повторить прогнозы после загрузки. Критерии перечислены в [закрытом плане](exec-plans/completed/ML-1.md). Это контрольный пакет, а не финальная модель или переносимый inference package.
 
 ## Git checkpoint
 
@@ -16,7 +16,7 @@
 ## Файлы контрольного пакета
 
 - Рабочие инструкции и рамки: `AGENTS.md`, `README.md`, `.gitignore`, `requirements-ml.txt`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/WORKFLOW.md`, `docs/REVIEW.md`, `docs/VERIFICATION.md`.
-- ML-документы: `docs/ML_DATA.md`, `docs/ML_VALIDATION.md`, `docs/ML_PLAN.md`, `docs/ML_EXPERIMENTS.md`, `docs/ML_INTERFACE.md`, `docs/STATUS.md`, `docs/exec-plans/active/ML-1.md`, этот review package.
+- ML-документы на момент R1: `docs/ML_DATA.md`, `docs/ML_VALIDATION.md`, `docs/ML_PLAN.md`, `docs/ML_EXPERIMENTS.md`, `docs/ML_INTERFACE.md`, `docs/STATUS.md`, `docs/exec-plans/active/ML-1.md` (позднее перенесён в `completed/`), этот review package.
 - Код: `ml/__init__.py`, `ml/common.py`, `ml/audit.py`, `ml/sample_eda.py`, `ml/train_baselines.py`, `ml/verify.py`.
 - `docs/HACKATHON_BRIEF.txt` — копия исходного задания; владелец подтвердил право публикации 2026-10-21.
 - `docs/HARNESS_PRINCIPLES.md`, `docs/MODULES.md`, `prompts/`, `templates/` существовали в рабочей папке до ML bootstrap. Они не требуются для работы ML-кода и не входят в checkpoint.
@@ -24,7 +24,7 @@
 
 ## Реально выполненные проверки
 
-Запуски исходного этапа 2026-10-21 записаны в [плане](exec-plans/active/ML-1.md) и [журнале](ML_EXPERIMENTS.md):
+Запуски исходного этапа 2026-10-21 записаны в [плане](exec-plans/completed/ML-1.md) и [журнале](ML_EXPERIMENTS.md):
 
 | Проверка | Фактический результат |
 | --- | --- |
@@ -65,4 +65,4 @@
 
 ## Результаты независимого ревью и принятия
 
-R1 по HEAD `56835d381bc69588f4f2bea724db93407ffabb46`: **FIXES REQUIRED**, 0 Blocker / 2 Important / 3 Minor. I-01 — целостность кеша; I-02 — автоматические инвариантные тесты; M-01 — граница полной проверки текста; M-02 — Precision@K/Recall@K и распределение score в плане ML-4; M-03 — уникальные run IDs для следующих экспериментов. Подробности исправлений и реальные проверки — в [R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md). Повторного ревью и принятия владельцем ещё нет; план остаётся активным.
+R1 по HEAD `56835d381bc69588f4f2bea724db93407ffabb46`: **FIXES REQUIRED**, 0 Blocker / 2 Important / 3 Minor. I-01 — целостность кеша; I-02 — автоматические инвариантные тесты; M-01 — граница полной проверки текста; M-02 — Precision@K/Recall@K и распределение score в плане ML-4; M-03 — уникальные run IDs для следующих экспериментов. Подробности исправлений и реальные проверки — в [R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md). Последующее R2 принято владельцем; запись в [закрытом плане](exec-plans/completed/ML-1.md).

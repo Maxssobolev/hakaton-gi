@@ -1,12 +1,12 @@
 # ML Foundation — review package R2
 
-**Дата:** 2026-10-21. **Stage ID:** ML-1–ML-3, единый [активный план](exec-plans/active/ML-1.md). **Цель R2:** устранить замечания независимого ревью R1, сохранив алгоритмы, гиперпараметры и воспроизводимость baseline. **Статус:** исправления опубликованы в draft PR; повторное независимое ревью и owner acceptance отсутствуют.
+**Дата:** 2026-10-21. **Stage ID:** ML-1–ML-3, единый [закрытый план](exec-plans/completed/ML-1.md). **Цель R2:** устранить замечания независимого ревью R1, сохранив алгоритмы, гиперпараметры и воспроизводимость baseline. **Итог:** по сообщению владельца, независимое R2 завершилось APPROVE / READY по HEAD `08fb61dc0e4dd3fd5650bd8c74110fcb6eff4106`; владелец принял этап и разрешил ML-4.
 
 ## Git и критерии
 
 - R1 reviewed HEAD: `56835d381bc69588f4f2bea724db93407ffabb46`; вердикт **FIXES REQUIRED**, 0 Blocker / 2 Important / 3 Minor.
 - Ветка: `review/ml-foundation`; base SHA: `1583412ba2bbf742ae28929315fd5a4ecb5170c8`. Head SHA проверенного R2-кода: `c37a90d2886f69ef81da865f78b847085d23c37f`. [Draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1) содержит R2; последующий коммит с записью метаданных может сдвинуть tip ветки, актуальный head виден в PR.
-- Критерии: I-01 — устаревший/повреждённый кеш обнаруживается, связан с TRAIN и пересобирается безопасно; I-02 — быстрые синтетические тесты покрывают инварианты; M-01–M-03 — уточнены границы проверки текста, будущие метрики и защита следующих запусков от перезаписи. Подробный исходный scope — в [плане](exec-plans/active/ML-1.md).
+- Критерии: I-01 — устаревший/повреждённый кеш обнаруживается, связан с TRAIN и пересобирается безопасно; I-02 — быстрые синтетические тесты покрывают инварианты; M-01–M-03 — уточнены границы проверки текста, будущие метрики и защита следующих запусков от перезаписи. Подробный исходный scope — в [плане](exec-plans/completed/ML-1.md).
 
 ## Исправления по замечаниям
 
@@ -24,7 +24,7 @@
 
 - Код: `ml/cache.py` (новый), `ml/train_baselines.py`, `ml/verify.py`.
 - Тесты: `tests/test_ml_foundation.py` (новый).
-- Документы: `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_DATA.md`, `docs/ML_EXPERIMENTS.md`, `docs/ML_PLAN.md`, `docs/STATUS.md`, `docs/VERIFICATION.md`, `docs/REVIEW_PACKAGE_ML_FOUNDATION.md`, `docs/exec-plans/active/ML-1.md`, этот пакет R2.
+- Документы на момент R2: `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_DATA.md`, `docs/ML_EXPERIMENTS.md`, `docs/ML_PLAN.md`, `docs/STATUS.md`, `docs/VERIFICATION.md`, `docs/REVIEW_PACKAGE_ML_FOUNDATION.md`, `docs/exec-plans/active/ML-1.md` (позднее перенесён в `completed/`), этот пакет R2.
 
 ## Реальные проверки и метрики
 
@@ -45,4 +45,4 @@
 
 ## Следующее решение владельца
 
-**Разрешение на commit/push R2 получено 2026-10-21**, исправления опубликованы в draft PR #1. Теперь ChatGPT в отдельной сессии проводит повторное независимое ревью; владелец принимает этап либо запрашивает дальнейшие исправления. ML Foundation не закрыт; ML-4 не начинается до вердикта и owner acceptance.
+**Разрешение на commit/push R2 получено 2026-10-21**, исправления опубликованы в draft PR #1. После публикации владелец сообщил о вердикте R2 APPROVE / READY и принял ML Foundation. Закрытие отражено в [плане](exec-plans/completed/ML-1.md). Новое разрешение не распространяется на commit/push изменений ML-4.

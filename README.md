@@ -4,7 +4,16 @@ ML-подсистема для хакатона: исследование дан
 
 ## Состояние
 
-Техническая часть первого контрольного пакета (аудит, протокол валидации, два baseline) выполнена. Пакет соответствует этапам ML-1–ML-3 новой дорожной карты и ожидает независимого ревью и принятия владельцем. Точный прогресс — в [статусе](docs/STATUS.md), [активном плане](docs/exec-plans/active/ML-1.md) и [пакете ревью](docs/REVIEW_PACKAGE_ML_FOUNDATION.md). Будущий Python API описан в [ML_INTERFACE](docs/ML_INTERFACE.md).
+ML Foundation принят. ML-4 tuning завершён с `lightgbm_rows65`; срочный [ML-DELIVERY](docs/exec-plans/active/ML-DELIVERY.md) включает рабочий inference, строгий submission и текстовый baseline. **Freeze: 22 октября 09:00 МСК; передача ML до 10:00 МСК.** Текущие артефакты и проверки — в [STATUS](docs/STATUS.md), контракт backend — [ML_HANDOFF](docs/ML_HANDOFF.md).
+
+```python
+from ml.inference import BankruptcyPredictor
+model = BankruptcyPredictor.load('/path/to/model_package')
+score = model.predict(features)
+scores = model.predict_batch(records)
+```
+
+Inference требует только `requirements-inference.txt`, модель и schema/metadata/manifest из локального пакета; TRAIN/TEST/text и обучение не нужны. Индекс остаётся внешним ключом backend.
 
 ## Данные
 
@@ -37,5 +46,20 @@ python -m venv .venv
 Команды могут занимать значительное время и память: входные файлы занимают около 8 ГБ. Обучение создаёт локальный `float32` memmap около 1,3 ГБ, чтобы не держать полную таблицу и её копии в RAM. Артефакты локальные и исключены из Git. Запускайте один тяжёлый ML-процесс за раз. Полный контракт проверки — в [VERIFICATION](docs/VERIFICATION.md), методология — в [ML_VALIDATION](docs/ML_VALIDATION.md).
 
 Для следующих отдельных запусков baseline используйте `--output-dir artifacts/runs --run-id auto`: каждому запуску создаётся свой каталог, существующий ID не перезаписывается. Текущий `artifacts/ml-1/` сохранён для воспроизведения исходных результатов.
+
+Внутренние эксперименты ML-4 читают проверенный кеш и только сохранённый development. Каждый preset создаёт отдельный run ID и записывает `folds.npz`, `results.json`, снимок кода runner и модели folds. Последовательно, при ограничении потоков:
+
+```bash
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.diagnose_ml4
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.optimize_tabular --preset cat_baseline
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.optimize_tabular --preset cat_depth3
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.optimize_tabular --preset cat_l2_10
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.optimize_tabular --preset lightgbm_base
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.optimize_tabular --preset lightgbm_leaves7
+```
+
+`--cache-dir`, `--data-dir`, `--output-dir`, `--run-id` и `--threads` позволяют задать пути и параметры запуска. `--repeat 0|1|2` выбирает заранее зафиксированное повторение групповой CV; без аргумента сохраняется исторический repeat 0. Для LightGBM нужна версия из `requirements-ml.txt`. Ограниченная серия регуляризации и правило выбора кандидата описаны в [ML_VALIDATION](docs/ML_VALIDATION.md), команды — в [VERIFICATION](docs/VERIFICATION.md).
+
+Загруженные модели и метрики конкретного запуска проверяются командой `.venv/bin/python -m ml.verify_ml4 --run-dir artifacts/runs/<run_id>`.
 
 Для продолжения работы агентом начните с [AGENTS.md](AGENTS.md). Рабочие инструкции проекта находятся в этом репозитории.
