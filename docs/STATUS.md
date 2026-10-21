@@ -1,10 +1,10 @@
 # Статус проекта
 
 - **Дата:** 2026-10-21.
-- **Текущий этап:** контрольный пакет [ML Foundation](exec-plans/active/ML-1.md), соответствующий ML-1 Data Audit/EDA, ML-2 Validation Protocol и ML-3 Baseline Models новой [дорожной карты](ML_PLAN.md). Независимое ревью R1 по HEAD `56835d3` вернуло **FIXES REQUIRED** (0 blocker, 2 important, 3 minor); локальные исправления готовы к повторной проверке, план остаётся активным.
+- **Текущий этап:** контрольный пакет [ML Foundation](exec-plans/active/ML-1.md), соответствующий ML-1 Data Audit/EDA, ML-2 Validation Protocol и ML-3 Baseline Models новой [дорожной карты](ML_PLAN.md). Независимое ревью R1 по HEAD `56835d3` вернуло **FIXES REQUIRED** (0 blocker, 2 important, 3 minor); исправления R2 опубликованы для повторной проверки, план остаётся активным.
 - **Реализовано:** проектная документация; аудит; групповой holdout; SGD Logistic Regression и CatBoost baseline; локальные модели и проверка их загрузки. Метрики и ограничения — в [журнале](ML_EXPERIMENTS.md).
 - **Область нашей команды:** только ML-подсистема и её передача другим командам. Проект входного и выходного контракта — [ML_INTERFACE](ML_INTERFACE.md). Переносимый inference package ещё не реализован. Backend и frontend разрабатывают другие команды.
-- **Ревью:** [draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1) содержит снимок R1. [Локальный пакет R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md) подготовлен без commit/push по указанию владельца. Повторного вердикта и owner acceptance ещё нет.
+- **Ревью:** [draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1) обновлён исправлениями R2; [пакет R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md) опубликован. Повторного вердикта и owner acceptance ещё нет.
 
 ## Открытые вопросы
 
@@ -15,4 +15,4 @@
 
 ## Следующий шаг
 
-После разрешения владельца опубликовать локальные исправления R2 в [draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1), получить повторное независимое ревью и принятие пакета ML Foundation. Только затем начать ML-4.
+Получить повторное независимое ревью [draft PR #1](https://github.com/Maxssobolev/hakaton-gi/pull/1) и принятие пакета ML Foundation владельцем. Только затем начать ML-4.

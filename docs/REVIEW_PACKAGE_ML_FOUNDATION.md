@@ -1,6 +1,6 @@
 # Review package: ML Foundation
 
-**Дата подготовки:** 2026-10-21. **Stage ID:** ML-1–ML-3 по текущей [дорожной карте](ML_PLAN.md); один исходный [активный план ML-1](exec-plans/active/ML-1.md). **Название:** Data Audit / EDA + Validation Protocol + Baseline Models. **Статус:** исходный пакет R1 опубликован в draft PR; независимое ревью вернуло FIXES REQUIRED. Локальные исправления описаны в [пакете R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md), owner acceptance не получено.
+**Дата подготовки:** 2026-10-21. **Stage ID:** ML-1–ML-3 по текущей [дорожной карте](ML_PLAN.md); один исходный [активный план ML-1](exec-plans/active/ML-1.md). **Название:** Data Audit / EDA + Validation Protocol + Baseline Models. **Статус:** исходный пакет R1 опубликован в draft PR; независимое ревью вернуло FIXES REQUIRED. Исправления опубликованы и описаны в [пакете R2](REVIEW_PACKAGE_ML_FOUNDATION_R2.md), owner acceptance не получено.
 
 ## Цель и критерии принятия
 
