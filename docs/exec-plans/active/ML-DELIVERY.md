@@ -1,5 +1,18 @@
 # Срочная ML-поставка — 22 октября 2026, 10:00 МСК
 
+**Новое прямое задание владельца, 2026-10-21: Quality Improvement Sprint.**
+Прежний запрет исследований ниже отменён в scope P0–P5 нового задания:
+лёгкие activity aggregates → ограниченный CPU XGBoost → сохранённые text OOF
+с весами 0/.05/.10 → выбор по development CV → новый refit/submission/package
+только при подтверждённом улучшении. Работа автономная, Git commit/push разрешены;
+новых формальных этапов и ожидания межэтапных ворот нет. Исходные данные,
+экспериментальные predictions/models/submissions в публичный Git не включать.
+Fallback archive и Submission 1 неизменны; baseline public0.64459 сообщён владельцем,
+не используется для подбора. Ограниченный протокол зафиксирован до результатов в
+[ML_VALIDATION](../../ML_VALIDATION.md). Проверить новые кандидаты до 07:30,
+freeze до 09:00, handoff до 10:00 МСК 22 октября. Независимое внешнее ревью
+не объявлять проведённым без фактического reviewer verdict.
+
 Основание: новое прямое задание владельца 2026-10-21. Оно разрешает немедленный inference, submission, текстовый эксперимент, необходимые Git-операции и параллельное критическое ревью. Старые межэтапные ворота не блокируют этот scope. ML Foundation принят; ML-4 tuning прекращён, кандидат `lightgbm_rows65`. Историческое внешнее ревью ML-4 не объявляем проведённым.
 
 ## Порядок и критерии
@@ -26,3 +39,21 @@
 
 - Text experiment run `20261021T132201Z-39481bde` завершён: A AUC0.639551/AP0.024494; B0.549281/0.015879; C0.594379/0.018083. Fixed blend проиграл6/6, оба repeats ухудшились; текст не включается, Submission2 не создаётся. Все106274 TEST text scores finite [0,1], но final text model не выпускается. [Checkpoint text](../../CHECKPOINT_TEXT.md).
 - Дополнительное критическое агентное review финальных artifacts/OOF/метрик — PASS, blocker/important нет. Внешний ChatGPT review по опубликованному снимку и owner acceptance не выдумываются. Пакет pkg1 оставлен неизменным; manual platform submission и backend installation остаются внешними действиями.
+
+## Итог Quality Sprint по последующему заданию владельца
+
+Исследование завершено 2026-10-21. LGB+13 activity aggregates проиграл3/3;
+один XGB CPU hist preset и fixed50/50 blend проверены на исходных3 и заранее
+заданных дополнительных6 folds. Blend на дополнительных folds:
+AUC0.641047 против0.639551, Δ+0.001496, победы5/6, оба repeat mean положительны.
+Предзаданный minimum mean Δ+0.002 не достигнут, gate FAIL. Small text blends
+5%/10% проиграли6/6, без повторного parse/fit. Все12 новых fold models прошли
+reload/metrics/splits/OOF verification; fallback hashes неизменны.
+
+Нового full-TRAIN fit, Submission2 или release package нет; production source
+и runtime requirements не меняются. Передавать прежний pkg1 и сохранять
+выбранный Submission1. [Результат/review package](../../QUALITY_SPRINT_RESULT.md).
+Новые исследования в этом sprint прекращены. План остаётся active для
+формальной приёмки владельца и фактической передачи; внешнее review sprint
+не объявляется проведённым. Код и агрегаты допускаются к Git checkpoint,
+приватные модели/OOF/CSV/архивы исключены.

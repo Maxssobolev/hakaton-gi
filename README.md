@@ -4,7 +4,7 @@ ML-подсистема для хакатона: исследование дан
 
 ## Состояние
 
-ML Foundation принят. **ML HANDOFF READY:** финальный `lightgbm_rows65` без текста; [ML-DELIVERY](docs/exec-plans/active/ML-DELIVERY.md) завершил техническую часть: offline inference и строгий submission готовы. Текстовый baseline и fixed OOF blend уступили на6/6 folds ([результат](docs/CHECKPOINT_TEXT.md)). **Freeze: 22 октября 09:00 МСК; передача ML до 10:00 МСК.** Текущие артефакты и проверки — в [STATUS](docs/STATUS.md), контракт backend — [ML_HANDOFF](docs/ML_HANDOFF.md).
+ML Foundation принят. **ML HANDOFF READY:** `lightgbm_rows65` без текста, public ROC-AUC0.64459 по сообщению владельца. Quality sprint завершён: activity aggregates не улучшили CV, fixed50/50 rows65/XGBoost дал лишь +0.001496 на дополнительных6 folds и не прошёл заранее заданный release gate. Сохраняются Submission1 и прежний offline pkg1; [полный результат](docs/QUALITY_SPRINT_RESULT.md). **Freeze: 22 октября 09:00 МСК; передача ML до 10:00 МСК.** Артефакты и проверки — в [STATUS](docs/STATUS.md), контракт backend — [ML_HANDOFF](docs/ML_HANDOFF.md).
 
 ```python
 from ml.inference import BankruptcyPredictor

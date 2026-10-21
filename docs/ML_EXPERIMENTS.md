@@ -161,3 +161,50 @@ Run `20261021T132201Z-39481bde`, cache `20261021T125246Z-822ce8c9`. Полный
 C−A AUC −0.045172, проигрыш6/6 и в обоих repeats; predeclared stability gate провален. Text candidate отклонён, Submission2 не готовится. Это вывод о данном baseline/blend, не обо всех текстовых подходах. Шесть folds+TEST smoke 68.37 s, cumulative RSS4148.20 MiB с mmap CSR. Повторная загрузка text models воспроизвела OOF; last-fold text inference на всех106274 TEST finite [0,1]. Временные утечки нельзя исключить без timestamps; predefined lexical presence AUC около0.5 не доказывает их отсутствия.
 
 Полная foldwise таблица, protocol/provenance и дополнительный read-only review PASS — [checkpoint text](CHECKPOINT_TEXT.md). Reviewer независимо сверил все arrays/models/OOF hashes, partitions без holdout, fixed blend/fallback и метрики с atol1e-12. Итоговый пакет — неизменный pkg1 (rows65 tabular), [checkpoint inference](CHECKPOINT_INFERENCE.md). Новые эксперименты не запускаются; ручная All Cups отправка выбрана владельцем, публичного score пока нет.
+
+## 2026-10-21 — ML Quality Improvement Sprint
+
+Прямое задание владельца возобновило ограниченные исследования после принятой
+Submission1 (public0.64459 по сообщению владельца). Leaderboard не использовался
+для выбора. Старые models/archive/CSV сохранены. Протокол записан до результатов
+в ML_VALIDATION; прежние group/nested stop splits, только development.
+
+| Model / repeat / run ID | Mean CV AUC | Mean AP | Stop+refit, s | Peak RSS, MiB |
+| --- | ---: | ---: | ---: | ---: |
+| LGB activity-v1 / 0 / `20261021T135545Z-b8634451` | 0.640477 | 0.024758 | 136.85 | 4175.10 |
+| XGB raw / 0 / `20261021T135922Z-276fb0f8` | 0.642405 | 0.025311 | 402.65 | 4323.11 |
+| XGB raw / 1 / `20261021T140758Z-36d5d6f0` | 0.629882 | 0.023721 | 618.22 | 3694.12 |
+| XGB raw / 2 / `20261021T142056Z-c8dc2f20` | 0.638568 | 0.024374 | 389.73 | 3239.49 |
+
+Все новые runs в `artifacts/quality-sprint/`, не в historical artifacts/runs/.
+13 stateless row aggregates проиграли baseline repeat0 (AUC0.644238) на3/3,
+Δ−0.003760; additional folds для них не запускались. Один XGB CPU hist preset:
+depth3/eta.05/min_child_weight10/alpha1/lambda20/rows.65/columns.8/bins128,
+seed42, max1000, stopping40 на отдельном stop, затем refit. Ни новые seeds,
+ни большой поиск не использовались. В repeat2 убрана лишняя development copy
+из RAM, выбор строк и параметры неизменны; синтетическая эквивалентность PASS.
+
+Fixed50/50 rows65/XGB на repeat0: AUC0.646311, Δ+0.002073, победы3/3.
+Его проверили без изменения параметров на repeats1/2. Mean AUC0.637379 и
+0.644715; Δ+0.001116 и +0.001876. На дополнительных6 folds mean0.641047
+против rows65 0.639551: **Δ+0.001496, победы5/6**, AP0.024785 против0.024494.
+Одна потеря AUC−0.005631, одна победа +0.000008. Предзаданный minimum mean
+Δ+0.002 не достигнут: программный gate FAIL. Новых конфигураций/весов после
+confirmation нет; уменьшение gap не заменяет критерий ROC-AUC.
+
+Текст без parse/fit: готовые OOF, weights0/.05/.10, exact missing fallback.
+5% AUC0.634069 (Δ−0.005482),10%0.627653 (Δ−0.011898), оба проиграли6/6.
+Текст остаётся вне поставки. TRAIN/TEST/TSV не изменялись, holdout не оценивался.
+
+Все12 новых fold refit моделей и их stopping histories/models/OOF hashes,
+group positions, train/validation AUC/AP/gap проверены отдельным verifier.
+Для XGB blend train gap также пересчитан по обоим загруженным компонентам.
+OOF text masks/формула прежнего blend воспроизведены. SHA fallback archive,
+Submission1 и delivery manifest совпали с доэкспериментальным снимком.
+
+**Решение: оставить rows65/pkg1/Submission1.** Новый full-TRAIN fit, Submission2
+и новый release package не создаются. Синтетически проверенный prototype
+ensemble runtime сохранён только локально, в production не включён.
+[Полный отчёт с foldwise таблицами и review package](QUALITY_SPRINT_RESULT.md).
+Независимое внешнее ChatGPT review и новая приёмка владельцем не проводились;
+статистическая значимость небольшого выигрыша не заявляется.

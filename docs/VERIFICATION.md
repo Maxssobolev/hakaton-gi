@@ -66,3 +66,39 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.text_experiment 
 ```
 
 Portable runtime проверяется в отдельном venv, устанавливаемом через `--no-index` из wheelhouse. Из копии архива в отдельном каталоге запускается `python -I smoke_test.py`, без TRAIN/TEST/text и без пути к рабочему репозиторию. SHA-256 manifest сверяет весь payload; archive hash сохраняется отдельно. Финальные факты и review checkpoints — в STATUS и ML_EXPERIMENTS. Unit suite включает повреждения артефактов, reordered schema, invalid types/NaN/overflow, batch semantics, submission failures и stateless text transform.
+
+## Quality sprint (2026-10-21)
+
+Не перезапускать обучение ради чтения отчёта. Протокол и условия продолжения
+зафиксированы в ML_VALIDATION. Дополнительная исследовательская зависимость:
+`pip install -r requirements-sprint.txt`; runtime старого пакета не меняется.
+Реальные команды первого сравнения (тяжёлые training процессы последовательно):
+
+```bash
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.quality_sprint --model lightgbm_agg --repeat 0
+OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=4 .venv/bin/python -m ml.quality_sprint --model xgb_raw --repeat 0
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.sprint_diagnostics
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.verify_sprint --run-dir artifacts/quality-sprint/<run_id>
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m unittest discover -s tests -v
+```
+
+`quality_sprint` проверяет SHA source/cache, сохраняет точные folds, snapshots
+runner/activity/ML-4/split helpers, параметры, версии, stopping history, native
+config, модели и validation OOF (включая baseline в том же порядке).
+`verify_sprint` отдельно загружает модели, проверяет nested group folds и
+сохранённые хэши, воспроизводит train/validation AUC/AP/gap и OOF с atol1e-12;
+TRAIN refit не выполняется. `sprint_diagnostics` читает только development для
+диагностики и использует готовые text OOF, проверяет хэши, missing mask и точную
+формулу прежнего blend. Исходный TSV не читается и text fit не выполняется.
+Все экспериментальные артефакты находятся только в ignored artifacts/quality-sprint.
+
+Fixed blend и программный release gate (не запускают training):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.sprint_blend --run-dir artifacts/quality-sprint/<xgb_run_id>
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.sprint_selection --runs artifacts/quality-sprint/20261021T135922Z-276fb0f8 artifacts/quality-sprint/20261021T140758Z-36d5d6f0 artifacts/quality-sprint/20261021T142056Z-c8dc2f20 --output artifacts/quality-sprint/selection-recheck.json
+```
+
+Selection output создаётся exclusive, прежний decision не перезаписывается.
+Итог gate FAIL. Все4 runs verified; нового full-TRAIN обучения и package smoke
+в этом sprint нет. Прежний offline smoke относится к неизменному pkg1.

@@ -1,5 +1,12 @@
 # Архитектура
 
+Quality sprint 2026-10-21 изолирован в `ml/quality_sprint.py` и локальных
+`artifacts/quality-sprint/`: 13 stateless activity aggregates, одна CPU hist
+конфигурация XGBoost, paired fixed OOF blend, reload verifier и программный
+selection gate. Дополнительная training-зависимость — requirements-sprint.txt.
+Gate не пройден; production inference, пакет rows65 и runtime requirements
+не меняются. Итоги — [QUALITY_SPRINT_RESULT](QUALITY_SPRINT_RESULT.md).
+
 ## Срочная поставка 2026-10-21
 
 Реализованы `ml.inference` (numpy/LightGBM, без training imports), `ml.delivery` (frozen full-TRAIN refit), `ml.make_submission` (streaming TEST + строгая повторная проверка), `ml.package_delivery` (offline package). Контракт — [ML_HANDOFF](ML_HANDOFF.md). `ml.text_features` пишет disk-backed CSR без vocabulary/IDF; `ml.text_experiment` использует только train folds и фиксированный OOF blend, fallback по usable-text indicator. Историческое описание ниже относится к предыдущему состоянию.
