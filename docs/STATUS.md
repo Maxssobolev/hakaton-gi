@@ -1,25 +1,23 @@
 # Статус проекта
 
-Дата: 2026-10-21. Прямое срочное задание владельца разрешило [ML-DELIVERY](exec-plans/active/ML-DELIVERY.md): freeze **22 октября 09:00 МСК**, ML handoff **до 10:00 МСК**. ML Foundation принят ранее; ML-4 tuning прекращён с базовым кандидатом `lightgbm_rows65`. Историческое внешнее ML-4 ревью ещё не проводилось; новое разрешение позволяет поставку без ожидания старых ворот.
+**2026-10-21: ML HANDOFF READY.** Финальный кандидат зафиксирован досрочно: `lightgbm_rows65` без текста. Дедлайн ML — **22 октября 10:00 МСК**, предельный freeze — **09:00 МСК**. Новые исследования и LightGBM tuning не запускаются. Основание и приёмка — [ML-DELIVERY](exec-plans/active/ML-DELIVERY.md). Backend/frontend и перенос самого приложения — область принимающих команд.
 
-## Рабочий табличный компонент
+## Готовая поставка
 
-- Полный TRAIN refit: 247972 строки, 191 дерево (медиана девяти сохранённых stopping iterations), без нового tuning/holdout-подбора. Версия `rows65-tabular-20261021T124857Z-440cc2cd`. Исходный immutable пакет `artifacts/delivery/20261021T124857Z-440cc2cd/`.
-- Реализованы строгая схема 1367 признаков, load без fit, single/batch, reserved text input и точный tabular fallback. Контракт для backend: [ML_HANDOFF](ML_HANDOFF.md).
-- Submission 1: `artifacts/submissions/20261021T125017Z-33955f0a/submission.csv`; SHA-256 `28637aff6b1c4aaddf0a00f88673c3f859ac43d9b6b5f1ee31f4a09a02bc0057`. 106274 unique index, точный порядок TEST; повторные scores загруженного пакета совпали с max error 0.0.
-- All Cups показывает 10 оставшихся попыток и форму загрузки, но upload_file отверг локальный путь как находящийся вне configured workspace roots браузерного инструмента. CSV **не отправлен**, публичного score **нет**. Это ограничение инструмента, а не отрицательная оценка платформы.
-- Offline wheelhouse и чистое окружение проверены (см. ниже); исходный пакет и submission сохраняются. Владелец выбрал продолжить с CSV для ручной отправки, без дальнейшего исправления браузерного доступа.
+- Версия `rows65-tabular-20261021T124857Z-440cc2cd`. Full TRAIN refit 247972 строк, 191 дерево — медиана девяти prior stopping iterations, без нового tuning или holdout-подбора. Python API load/predict/predict_batch реализован, strict 1367 float32 features, без скрытого fit и исходных данных.
+- Каталог: `artifacts/handoff/rows65-tabular-20261021T124857Z-440cc2cd-pkg1/`. Архив: `artifacts/handoff/rows65-tabular-20261021T124857Z-440cc2cd-pkg1.tar.gz`, 56707268 bytes. SHA-256 **`fa5a23cb7cdb8dd0213145666b1d0a83223b9f0a7aea0bacb06847c3749f950b`**. Все payload hashes в manifest. Состав, чистая установка и доказательства — [checkpoint inference](CHECKPOINT_INFERENCE.md), backend contract — [ML_HANDOFF](ML_HANDOFF.md).
+- Проверенная среда: Python3.8.20/Linux x86_64, glibc>=2.28/libgomp; numpy1.24.4/scipy1.10.1/lightgbm4.5.0. Wheels и offline pip bootstrap включены.
+- 22 unit tests PASS; fresh offline venv и synthetic smoke PASS, single=batch/reload. Проверка запрещает доступ к исходному репозиторию, dataset paths и сети; negative selfchecks guard PASS. Первый smoke 1.69 s/64.625 MiB RSS. Последний усиленный receipt: `artifacts/handoff-verifications/20261021T131130Z-741a4aa0/`.
+- Submission 1: `artifacts/submissions/20261021T125017Z-33955f0a/submission.csv`. SHA-256 **`28637aff6b1c4aaddf0a00f88673c3f859ac43d9b6b5f1ee31f4a09a02bc0057`**. 106274 unique index, exact TEST order, finite [0,1], max prediction error **0.0**, в том числе по финальному pkg1. Исходные model package и provenance сохранены, не перезаписывались. [Checkpoint submission](CHECKPOINT_SUBMISSION1.md).
 
-## Исследование и проверки
+## Текст: исследован и отклонён для релиза
 
-Полный streaming текстовый аудит/hash CSR запущен. Fixed SGD baseline и 50/50 OOF blend будут сравниваться с rows65 на тех же 6 folds repeats 1/2. Нет дальнейшего LightGBM tuning. Метрики текста пока не получены.
+Полный parse всех274842 TSV records валиден: частоты1…11583, 396 пустых, duplicate/orphan/malformed не обнаружено. CSR кеш и все модели остаются локально. На тех же6 folds repeats1/2: A tabular AUC0.639551/AP0.024494; B text SGD AUC0.549281/AP0.015879; C fixed50/50 OOF blend AUC0.594379/AP0.018083. C уступил на6/6; правило включения не выполнено. В поставку не входят text model/CSR/TSV; Submission2 не создаётся. Полные foldwise данные и ограничения — [checkpoint text](CHECKPOINT_TEXT.md). Это отрицательный результат данного подхода, а не доказательство бесполезности любых текстовых моделей.
 
-Дополнительное read-only агентное критическое ревью кода проведено параллельно: исправлены тип batch text_counts, запрет невалидного text cache и проверка порядка index; блокеров для запуска нет. Оно не заменяет внешнее ChatGPT review по опубликованному снимку.
+## Ревью и оставшиеся действия
 
-## Ограничения
+Дополнительное read-only агентное ревью критичных кода/артефактов/OOF/метрик завершено: PASS, новых blocker/important нет. Воспроизведены метрики, partition development без holdout, exact blend/fallback, SHA всех cache arrays/моделей/OOF и состава архива. Это не внешнее ChatGPT review по опубликованному Git-снимку; его вердикт и формальная приёмка владельца ещё не получены. Исторический ML-4 tuning закрыт как исследование, но внешнее ML-4 review не объявляется проведённым.
 
-Нет времён события/формирования данных и словаря 1367 признаков; score не откалиброван. Baseline holdout ранее просмотрен, новой независимой финальной оценки нет. Внутренняя repeated CV описывает качество кандидата (AUC 0.639551 ± 0.008700 на 6 дополнительных folds), а не full-TRAIN training quality. Код и агрегаты можно публиковать по новому разрешению; исходные данные, модель, CSR и CSV остаются локальными.
+All Cups форма доступна, однако upload-инструмент отверг доступ к локальной рабочей папке. Владелец выбрал ручную отправку готового CSV. Автоматическая отправка не состоялась, публичной оценки нет. Требуется ручная отправка/выбор решения на платформе и получение score. Фактическая установка backend во внутреннем контуре ещё не проверена; пакет готов для передачи по выбранному командой каналу.
 
-## Проверенный offline fallback
-
-Архив `artifacts/handoff/rows65-tabular-20261021T124857Z-440cc2cd-pkg1.tar.gz` (56.7 MB), SHA-256 `fa5a23cb7cdb8dd0213145666b1d0a83223b9f0a7aea0bacb06847c3749f950b`. Чистый offline venv, три synthetic controls и запрет доступа к репозиторию/исходным данным/сети — PASS; smoke 1.69 s, RSS 64.625 MiB. Только numpy/scipy/lightgbm; 22 unit tests PASS. Состав и доказательства — [checkpoint inference](CHECKPOINT_INFERENCE.md). Текстовый эксперимент ещё не завершён; готовый tabular пакет можно интегрировать уже сейчас.
+Ограничения модели: анонимные признаки, неизвестное время их формирования и горизонт события; score не откалиброван. Baseline holdout ранее просмотрен; независимой финальной оценки нет. Код, агрегаты и checkpoints опубликованы отдельно от приватных данных/моделей/CSV.

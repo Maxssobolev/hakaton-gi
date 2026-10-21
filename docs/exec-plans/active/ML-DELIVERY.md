@@ -18,8 +18,11 @@
 
 ## Результаты
 
-В работе. Записываются после реальных запусков.
+**Техническая часть готова досрочно 2026-10-21.** Final candidate rows65 tabular; новые эксперименты не запускаются. План остаётся active для формальной приёмки владельцем/фактической передачи и результата ручной отправки.
 
 - Табличный refit/inference и Submission 1 выполнены; [checkpoint 1](../../CHECKPOINT_SUBMISSION1.md).
 - Offline пакет с wheelhouse, усиленный clean smoke и дополнительное агентное ревью — PASS; [checkpoint inference](../../CHECKPOINT_INFERENCE.md). Владелец выбрал ручную отправку CSV после отказа upload-инструмента; platform score пока отсутствует.
 - Полный текстовый parse завершён: 274842 строк, формат/joins валидны, частоты 1…11583, 396 пустых; 1276.85 s, 358661005 CSR nnz. Запущены lexical screen и fixed A/B/C experiment.
+
+- Text experiment run `20261021T132201Z-39481bde` завершён: A AUC0.639551/AP0.024494; B0.549281/0.015879; C0.594379/0.018083. Fixed blend проиграл6/6, оба repeats ухудшились; текст не включается, Submission2 не создаётся. Все106274 TEST text scores finite [0,1], но final text model не выпускается. [Checkpoint text](../../CHECKPOINT_TEXT.md).
+- Дополнительное критическое агентное review финальных artifacts/OOF/метрик — PASS, blocker/important нет. Внешний ChatGPT review по опубликованному снимку и owner acceptance не выдумываются. Пакет pkg1 оставлен неизменным; manual platform submission и backend installation остаются внешними действиями.

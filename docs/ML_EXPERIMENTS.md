@@ -147,3 +147,17 @@
 Single/batch synthetic controls и reloaded scores совпали. Submission run `20261021T125017Z-33955f0a`: строгий validator PASS, 106274 строк, max abs prediction error 0.0; CSV SHA-256 `28637aff6b1c4aaddf0a00f88673c3f859ac43d9b6b5f1ee31f4a09a02bc0057`. Приватные файлы — в ignored artifacts. Подробности/состояние All Cups: [checkpoint 1](CHECKPOINT_SUBMISSION1.md).
 
 Offline pkg1: archive 56707268 bytes, SHA-256 `fa5a23cb7cdb8dd0213145666b1d0a83223b9f0a7aea0bacb06847c3749f950b`; manifest `ee2954cbea04ebce12acc854b03ee7fea5e070cc3454351562b70052b05e539f`. Чистый Python 3.8.20 venv установил только три runtime зависимости из wheels через --no-index. Synthetic smoke с запретом source/repo open и network PASS, 1.69 s и 64.625 MiB peak RSS. Дополнительный reviewer подтвердил manifest/tar/официальные wheel hashes и повторно сверил весь submission по pkg1 с max error 0.0. Воспроизводимый `ml.verify_delivery` сохраняет audit hook рядом с receipt. Подробности: [checkpoint inference](CHECKPOINT_INFERENCE.md).
+
+## 2026-10-21 — текстовый baseline и решение о финальном пакете
+
+Run `20261021T132201Z-39481bde`, cache `20261021T125246Z-822ce8c9`. Полный TSV parse (274842 записей/361534424 пар, частоты1…11583, 396 пустых) без malformed/duplicate/orphan, 1276.85 s. Разреженный disk-backed hash18/log1p/L2/missing и predeclared outcome exclusion; SGD5 epochs, alpha1e-4/average/seed42, fixed50/50 blend. Все folds строго прежние rows65 repeats1/2.
+
+| Вариант | Mean AUC ± SD | Mean AP |
+| --- | ---: | ---: |
+| A tabular | 0.639551 ± 0.008700 | 0.024494 |
+| B text | 0.549281 ± 0.015676 | 0.015879 |
+| C fixed blend | 0.594379 ± 0.016047 | 0.018083 |
+
+C−A AUC −0.045172, проигрыш6/6 и в обоих repeats; predeclared stability gate провален. Text candidate отклонён, Submission2 не готовится. Это вывод о данном baseline/blend, не обо всех текстовых подходах. Шесть folds+TEST smoke 68.37 s, cumulative RSS4148.20 MiB с mmap CSR. Повторная загрузка text models воспроизвела OOF; last-fold text inference на всех106274 TEST finite [0,1]. Временные утечки нельзя исключить без timestamps; predefined lexical presence AUC около0.5 не доказывает их отсутствия.
+
+Полная foldwise таблица, protocol/provenance и дополнительный read-only review PASS — [checkpoint text](CHECKPOINT_TEXT.md). Reviewer независимо сверил все arrays/models/OOF hashes, partitions без holdout, fixed blend/fallback и метрики с atol1e-12. Итоговый пакет — неизменный pkg1 (rows65 tabular), [checkpoint inference](CHECKPOINT_INFERENCE.md). Новые эксперименты не запускаются; ручная All Cups отправка выбрана владельцем, публичного score пока нет.
