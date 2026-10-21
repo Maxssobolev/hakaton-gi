@@ -31,3 +31,5 @@
 ```bash
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m ml.verify_delivery --archive artifacts/handoff/rows65-tabular-20261021T124857Z-440cc2cd-pkg1.tar.gz --sha256 fa5a23cb7cdb8dd0213145666b1d0a83223b9f0a7aea0bacb06847c3749f950b
 ```
+
+Усиление verifier после дополнительного замечания reviewer: пути нормализуются через os.fsdecode/Path.resolve; отрицательные self-checks absolute/bytes/relative/dataset basename/socket.connect — PASS. Повторный clean offline smoke: `artifacts/handoff-verifications/20261021T131130Z-741a4aa0/receipt.json`; guard source сохранён. Frozen archive и его SHA не менялись.

@@ -46,17 +46,32 @@ def main():
         for name, command in zip(('bootstrap.txt', 'install.txt'), commands):
             result = subprocess.run(command, cwd=temporary, check=True, capture_output=True, text=True)
             (evidence/name).write_text(result.stdout+'\n'+result.stderr, encoding='utf-8')
-        guard_source = """import sys, runpy
+        guard_source = """import sys, runpy, os, socket
 from pathlib import Path
-REPOSITORY = {repository!r}
+REPOSITORY = Path({repository!r}).resolve()
 def guard(event, args):
     if event == 'open' and isinstance(args[0], (str, bytes)):
-        path = str(args[0])
-        if path.startswith(REPOSITORY + '/') or Path(path).name in ('TRAIN.csv', 'TEST.csv', 'text_data.tsv'):
+        path = Path(os.fsdecode(args[0])).resolve()
+        if path == REPOSITORY or REPOSITORY in path.parents or path.name in ('TRAIN.csv', 'TEST.csv', 'text_data.tsv'):
             raise RuntimeError('Source/repository access prohibited during portable smoke')
     if event == 'socket.connect':
         raise RuntimeError('Network prohibited during smoke')
 sys.addaudithook(guard)
+for blocked_path in (str(REPOSITORY/'AGENTS.md'), os.fsencode(REPOSITORY/'AGENTS.md'), os.path.relpath(REPOSITORY/'AGENTS.md'), str(Path.cwd()/'TRAIN.csv')):
+    try:
+        with open(blocked_path, 'rb'):
+            pass
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError('Source path guard self-check failed')
+try:
+    with socket.socket() as sock:
+        sock.connect(('127.0.0.1', 1))
+except RuntimeError:
+    pass
+else:
+    raise AssertionError('Network guard self-check failed')
 runpy.run_path({smoke!r}, run_name='__main__')
 """.format(repository=repository, smoke=str(package/'smoke_test.py'))
         guard = temporary/'guard.py'; guard.write_text(guard_source, encoding='utf-8')
@@ -72,6 +87,7 @@ runpy.run_path({smoke!r}, run_name='__main__')
                    'bytes':archive.stat().st_size, 'manifest_sha256':file_sha256(package/'manifest.json'),
                    'guard_sha256':file_sha256(evidence/'guard.py'), 'verifier_sha256':file_sha256(Path(__file__)),
                    'fresh_environment':True, 'offline_install':True, 'source_data_copied':False,
+                   'guard_self_checks':['absolute','bytes','relative','dataset_basename','socket.connect'],
                    'installed':installed.stdout.splitlines(), 'smoke':json.loads(result.stdout)}
         write_json(evidence/'receipt.json', receipt)
         print(json.dumps({'status':'PASS', 'evidence':str(evidence), 'receipt':receipt}), flush=True)

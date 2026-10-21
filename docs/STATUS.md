@@ -8,7 +8,7 @@
 - Реализованы строгая схема 1367 признаков, load без fit, single/batch, reserved text input и точный tabular fallback. Контракт для backend: [ML_HANDOFF](ML_HANDOFF.md).
 - Submission 1: `artifacts/submissions/20261021T125017Z-33955f0a/submission.csv`; SHA-256 `28637aff6b1c4aaddf0a00f88673c3f859ac43d9b6b5f1ee31f4a09a02bc0057`. 106274 unique index, точный порядок TEST; повторные scores загруженного пакета совпали с max error 0.0.
 - All Cups показывает 10 оставшихся попыток и форму загрузки, но upload_file отверг локальный путь как находящийся вне configured workspace roots браузерного инструмента. CSV **не отправлен**, публичного score **нет**. Это ограничение инструмента, а не отрицательная оценка платформы.
-- Final offline wheelhouse и чистое окружение готовятся отдельно; исходный пакет и submission сохраняются.
+- Offline wheelhouse и чистое окружение проверены (см. ниже); исходный пакет и submission сохраняются. Владелец выбрал продолжить с CSV для ручной отправки, без дальнейшего исправления браузерного доступа.
 
 ## Исследование и проверки
 

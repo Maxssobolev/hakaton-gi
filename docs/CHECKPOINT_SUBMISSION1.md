@@ -15,3 +15,5 @@ All Cups: https://cups.online/ru/workareas/Code_of_the_Time/1924/3664 . Авто
 Дополнительный read-only агент проверил ML-4 границы, inference, delivery и submission: блокеров нет. Исправлен TypeError скалярного text_counts, добавлены negative cases. Проверены >2**53 index, неверные header/order/count/score и повреждение модели. Это агентное ревью не заменяет внешнюю сессию ChatGPT по Git-снимку. Финальные offline smoke и текстовый эксперимент ещё выполняются.
 
 Для внешнего reviewer: проверить frozen median selection/full TRAIN fit, schema/type semantics и точность index, provenance/неперезапись, отсутствие source rows/model artifacts в публичном Git. Git checkpoint сохраняет только код, документацию и агрегаты; все приватные артефакты остаются локально.
+
+Владелец после сообщения об отказе upload-инструмента выбрал продолжить с готовым CSV для ручной отправки. Повторные попытки обхода доступа и расходование submission attempts не выполняются.

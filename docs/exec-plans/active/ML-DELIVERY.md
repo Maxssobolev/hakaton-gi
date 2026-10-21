@@ -19,3 +19,7 @@
 ## Результаты
 
 В работе. Записываются после реальных запусков.
+
+- Табличный refit/inference и Submission 1 выполнены; [checkpoint 1](../../CHECKPOINT_SUBMISSION1.md).
+- Offline пакет с wheelhouse, усиленный clean smoke и дополнительное агентное ревью — PASS; [checkpoint inference](../../CHECKPOINT_INFERENCE.md). Владелец выбрал ручную отправку CSV после отказа upload-инструмента; platform score пока отсутствует.
+- Полный текстовый parse завершён: 274842 строк, формат/joins валидны, частоты 1…11583, 396 пустых; 1276.85 s, 358661005 CSR nnz. Запущены lexical screen и fixed A/B/C experiment.
