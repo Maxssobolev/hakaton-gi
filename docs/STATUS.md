@@ -19,3 +19,7 @@
 ## Ограничения
 
 Нет времён события/формирования данных и словаря 1367 признаков; score не откалиброван. Baseline holdout ранее просмотрен, новой независимой финальной оценки нет. Внутренняя repeated CV описывает качество кандидата (AUC 0.639551 ± 0.008700 на 6 дополнительных folds), а не full-TRAIN training quality. Код и агрегаты можно публиковать по новому разрешению; исходные данные, модель, CSR и CSV остаются локальными.
+
+## Проверенный offline fallback
+
+Архив `artifacts/handoff/rows65-tabular-20261021T124857Z-440cc2cd-pkg1.tar.gz` (56.7 MB), SHA-256 `fa5a23cb7cdb8dd0213145666b1d0a83223b9f0a7aea0bacb06847c3749f950b`. Чистый offline venv, три synthetic controls и запрет доступа к репозиторию/исходным данным/сети — PASS; smoke 1.69 s, RSS 64.625 MiB. Только numpy/scipy/lightgbm; 22 unit tests PASS. Состав и доказательства — [checkpoint inference](CHECKPOINT_INFERENCE.md). Текстовый эксперимент ещё не завершён; готовый tabular пакет можно интегрировать уже сейчас.
