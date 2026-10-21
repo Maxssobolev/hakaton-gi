@@ -29,10 +29,13 @@ python -m venv .venv
 Обучение двух baseline и проверка сохранённых моделей:
 
 ```bash
+.venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python -m ml.train_baselines --data-dir . --output-dir artifacts/ml-1
 .venv/bin/python -m ml.verify --artifact-dir artifacts/ml-1 --data-dir .
 ```
 
 Команды могут занимать значительное время и память: входные файлы занимают около 8 ГБ. Обучение создаёт локальный `float32` memmap около 1,3 ГБ, чтобы не держать полную таблицу и её копии в RAM. Артефакты локальные и исключены из Git. Запускайте один тяжёлый ML-процесс за раз. Полный контракт проверки — в [VERIFICATION](docs/VERIFICATION.md), методология — в [ML_VALIDATION](docs/ML_VALIDATION.md).
+
+Для следующих отдельных запусков baseline используйте `--output-dir artifacts/runs --run-id auto`: каждому запуску создаётся свой каталог, существующий ID не перезаписывается. Текущий `artifacts/ml-1/` сохранён для воспроизведения исходных результатов.
 
 Для продолжения работы агентом начните с [AGENTS.md](AGENTS.md). Рабочие инструкции проекта находятся в этом репозитории.

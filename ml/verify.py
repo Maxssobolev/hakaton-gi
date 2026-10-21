@@ -9,8 +9,30 @@ import numpy as np
 from catboost import CatBoostClassifier
 from sklearn.metrics import average_precision_score, roc_auc_score
 
+from .cache import file_sha256, validate_cache, verify_source_projection
 from .common import FEATURES, check_headers
-from .train_baselines import file_sha256
+
+
+def validate_schema(schema):
+    if (
+        not isinstance(schema, dict)
+        or schema.get("features") != FEATURES
+        or schema.get("dtype") != "float32"
+        or schema.get("target") != "target"
+        or schema.get("join_key") != "index"
+    ):
+        raise AssertionError("saved feature schema is incorrect")
+
+
+def load_saved_models(artifact_dir):
+    artifact_dir = Path(artifact_dir)
+    try:
+        logistic = joblib.load(artifact_dir / "sgd_logistic.joblib")
+        catboost = CatBoostClassifier()
+        catboost.load_model(str(artifact_dir / "catboost.cbm"))
+    except Exception as exc:
+        raise ValueError("saved model artifact is missing or damaged") from exc
+    return (("sgd_logistic", logistic), ("catboost", catboost))
 
 
 def main():
@@ -20,15 +42,17 @@ def main():
     args = parser.parse_args()
     results = json.loads((args.artifact_dir / "results.json").read_text(encoding="utf-8"))
     schema = json.loads((args.artifact_dir / "schema.json").read_text(encoding="utf-8"))
-    if schema["features"] != FEATURES or "index" in schema["features"] or "target" in schema["features"]:
-        raise AssertionError("saved feature schema is incorrect")
-    if file_sha256(args.data_dir / "TRAIN.csv") != results["data"]["TRAIN.csv"]["sha256"]:
+    validate_schema(schema)
+    source_hash = file_sha256(args.data_dir / "TRAIN.csv")
+    if source_hash != results["data"]["TRAIN.csv"]["sha256"]:
         raise AssertionError("TRAIN.csv changed since model training")
     check_headers(args.data_dir)
-    x = np.load(args.artifact_dir / "features.npy", mmap_mode="r")
-    y = np.load(args.artifact_dir / "targets.npy", mmap_mode="r")
-    row_hashes = np.load(args.artifact_dir / "row_hashes.npy", mmap_mode="r")
-    split = np.load(args.artifact_dir / "split.npz")
+    validate_cache(args.artifact_dir, source_hash)
+    verify_source_projection(args.data_dir, args.artifact_dir)
+    x = np.load(args.artifact_dir / "features.npy", mmap_mode="r", allow_pickle=False)
+    y = np.load(args.artifact_dir / "targets.npy", mmap_mode="r", allow_pickle=False)
+    row_hashes = np.load(args.artifact_dir / "row_hashes.npy", mmap_mode="r", allow_pickle=False)
+    split = np.load(args.artifact_dir / "split.npz", allow_pickle=False)
     development, holdout = split["development"], split["holdout"]
     if len(development) + len(holdout) != len(y) or len(np.unique(np.concatenate([development, holdout]))) != len(y):
         raise AssertionError("split is not a disjoint full partition")
@@ -43,10 +67,7 @@ def main():
         raise AssertionError("saved split labels mismatch")
     probe = results["probe"]
     x_probe = x[probe["holdout_positions"]]
-    logistic = joblib.load(args.artifact_dir / "sgd_logistic.joblib")
-    catboost = CatBoostClassifier()
-    catboost.load_model(str(args.artifact_dir / "catboost.cbm"))
-    for name, model in (("sgd_logistic", logistic), ("catboost", catboost)):
+    for name, model in load_saved_models(args.artifact_dir):
         actual = model.predict_proba(np.array(x_probe, copy=True))[:, 1]
         np.testing.assert_allclose(actual, probe[name], rtol=1e-6, atol=1e-7)
         holdout_scores = np.empty(len(holdout), dtype=np.float64)
@@ -58,7 +79,7 @@ def main():
         np.testing.assert_allclose(roc_auc, results["models"][name]["holdout"]["roc_auc"], rtol=0, atol=1e-12)
         np.testing.assert_allclose(average_precision, results["models"][name]["holdout"]["average_precision"], rtol=0, atol=1e-12)
         print("{}: restored predictions and holdout metrics match".format(name))
-    print("outer/inner splits, schema, source hash and loaded models: PASS")
+    print("outer/inner splits, schema, full source/cache comparison and loaded models: PASS")
 
 
 if __name__ == "__main__":

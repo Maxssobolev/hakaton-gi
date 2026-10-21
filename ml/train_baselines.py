@@ -2,12 +2,14 @@
 
 import argparse
 import gc
-import hashlib
 import json
 import os
 import platform
+import re
 import resource
 import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -21,61 +23,26 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from .cache import file_sha256, prepare_cache
 from .common import FEATURES, check_headers
 
 
-ROWS = 247972
 BATCH = 4096
 
 
-def file_sha256(path):
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as handle:
-        for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
-def prepare_cache(data_dir, output_dir, source_hash):
-    feature_path = output_dir / "features.npy"
-    target_path = output_dir / "targets.npy"
-    group_path = output_dir / "row_hashes.npy"
-    meta_path = output_dir / "cache.json"
-    if all(path.exists() for path in (feature_path, target_path, group_path, meta_path)):
-        meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        if meta.get("train_sha256") == source_hash and meta.get("rows") == ROWS:
-            return
-    print("Streaming TRAIN.csv to float32 memmap; hashing feature rows", flush=True)
-    x = np.lib.format.open_memmap(feature_path, mode="w+", dtype=np.float32, shape=(ROWS, len(FEATURES)))
-    y = np.lib.format.open_memmap(target_path, mode="w+", dtype=np.int8, shape=(ROWS,))
-    hashes = np.lib.format.open_memmap(group_path, mode="w+", dtype=np.uint64, shape=(ROWS,))
-    dtype = {name: np.float32 for name in FEATURES}
-    dtype.update({"index": np.int32, "target": np.float32})
-    offset = 0
-    seen_ids = set()
-    for chunk in pd.read_csv(data_dir / "TRAIN.csv", dtype=dtype, chunksize=5000):
-        n = len(chunk)
-        indexes = chunk["index"].to_numpy()
-        if len(np.unique(indexes)) != n or any(int(index) in seen_ids for index in indexes):
-            raise ValueError("TRAIN.csv has duplicate index")
-        seen_ids.update(int(index) for index in indexes)
-        vals = chunk[FEATURES].to_numpy(dtype=np.float32, copy=False)
-        if not np.isfinite(vals).all():
-            raise ValueError("Nonfinite values need an explicit preprocessing rule")
-        if not chunk["target"].isin([0.0, 1.0]).all():
-            raise ValueError("target has invalid labels")
-        x[offset:offset + n] = vals
-        y[offset:offset + n] = chunk["target"].to_numpy(dtype=np.int8)
-        for i, row in enumerate(vals):
-            hashes[offset + i] = int.from_bytes(hashlib.blake2b(row.tobytes(), digest_size=8).digest(), "little")
-        offset += n
-    if offset != ROWS:
-        raise ValueError("Unexpected TRAIN row count: {}".format(offset))
-    x.flush()
-    y.flush()
-    hashes.flush()
-    del x, y, hashes
-    meta_path.write_text(json.dumps({"train_sha256": source_hash, "rows": ROWS, "dtype": "float32", "feature_count": len(FEATURES)}, indent=2), encoding="utf-8")
+def resolve_run_dir(base_dir, run_id):
+    base_dir = Path(base_dir)
+    if run_id is None:
+        base_dir.mkdir(parents=True, exist_ok=True)
+        return base_dir, None
+    if run_id == "auto":
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", run_id):
+        raise ValueError("run_id must be a safe single directory name")
+    base_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = base_dir / run_id
+    run_dir.mkdir(exist_ok=False)
+    return run_dir, run_id
 
 
 def batches(positions, batch_size=BATCH):
@@ -93,6 +60,13 @@ def stratified_group_split(positions, row_hashes, y, test_size, seed):
     hold_group_mask[hold_groups] = True
     hold_mask = hold_group_mask[inverse]
     return positions[~hold_mask].astype(np.int32), positions[hold_mask].astype(np.int32), len(unique_groups)
+
+
+def fit_development_scaler(x, dev_pos):
+    scaler = StandardScaler(copy=False)
+    for part in batches(dev_pos):
+        scaler.partial_fit(np.array(x[part], copy=True))
+    return scaler
 
 
 def metrics(y, score):
@@ -130,6 +104,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", type=Path, default=Path("."))
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/ml-1"))
+    parser.add_argument("--run-id", default=None, help="Unique run ID or 'auto'; stores output below --output-dir without overwriting")
     parser.add_argument("--catboost-iterations", type=int, default=300)
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--sgd-epochs", type=int, default=8)
@@ -137,7 +112,7 @@ def main():
     if min(args.catboost_iterations, args.threads, args.sgd_epochs) < 1:
         parser.error("iterations, threads and epochs must be positive")
     check_headers(args.data_dir)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    args.output_dir, run_id = resolve_run_dir(args.output_dir, args.run_id)
     train_path = args.data_dir / "TRAIN.csv"
     source_hash = file_sha256(train_path)
     prepare_cache(args.data_dir, args.output_dir, source_hash)
@@ -156,11 +131,11 @@ def main():
         "versions": {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__, "scikit_learn": sklearn.__version__, "catboost": catboost_version, "joblib": joblib.__version__},
         "models": {},
     }
+    if run_id is not None:
+        results["run_id"] = run_id
     print(json.dumps({"split": results["split"]}), flush=True)
 
-    scaler = StandardScaler(copy=False)
-    for part in batches(dev_pos):
-        scaler.partial_fit(np.array(x[part], copy=True))
+    scaler = fit_development_scaler(x, dev_pos)
     classifier = SGDClassifier(loss="log_loss", alpha=1e-4, max_iter=1, tol=None, average=True, random_state=42)
     random = np.random.RandomState(42)
     print("Fitting batch SGD logistic regression", flush=True)
