@@ -130,3 +130,6 @@ Gate был предрегистрирован в 07:04, до расчёта п�
 - В Git не входят TRAIN/TEST/text_data, `artifacts/` (модели, таблицы, CSV, архивы) и чужие неотслеживаемые файлы
   (`docs/HARNESS_PRINCIPLES.md`, `docs/MODULES.md`, `prompts/`, `templates/`).
 - Проверки перед коммитом: `unittest discover -s tests` 40/40 OK, `py_compile` OK, `git diff --check` OK.
+- Коммит R3: **`e628b7b4663df847fd780e49b6adef729799bda3`**. Этот раздел внесён следующим коммитом той же ветки.
+- **Push не выполнен:** его заблокировал защитный механизм Claude Code; обходить его не стали. Выполнить вручную
+  (без force): `git push -u origin ml/final-attack-r3`.
