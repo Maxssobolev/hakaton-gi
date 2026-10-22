@@ -1,4 +1,7 @@
-"""Build a local offline handoff directory without copying datasets or training code."""
+"""Build a local offline handoff directory without copying datasets or training code.
+
+Copies every payload file listed in the source package manifest (format 1 or 2), the current docs/ML_HANDOFF.md and
+the wheelhouse, then rewrites the manifest and reloads the package."""
 import argparse
 import json
 import shutil
@@ -21,22 +24,23 @@ def main():
             raise ValueError('Wheelhouse must contain exactly one {} wheel'.format(required))
     root = args.output_dir
     root.mkdir(parents=True, exist_ok=False)
-    for name in ('model.txt', 'schema.json', 'metadata.json', 'control_vectors.json'):
-        shutil.copy2(args.model_dir / name, root / name)
-    (root/'ml').mkdir()
-    (root/'ml/__init__.py').write_text('', encoding='utf-8')
-    shutil.copy2('ml/inference.py', root/'ml/inference.py')
-    shutil.copy2('ml/smoke_delivery.py', root/'smoke_test.py')
-    shutil.copy2('docs/ML_HANDOFF.md', root/'ML_HANDOFF.md')
-    shutil.copy2('requirements-inference.txt', root/'requirements-inference.txt')
-    (root/'wheelhouse').mkdir()
+    files = json.loads((args.model_dir / 'manifest.json').read_text(encoding='utf-8'))['files']
+    for name in files:
+        if name == 'ML_HANDOFF.md':
+            continue
+        target = root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(args.model_dir / name, target)
+    shutil.copy2('docs/ML_HANDOFF.md', root / 'ML_HANDOFF.md')
+    (root / 'wheelhouse').mkdir()
     for wheel in wheels:
-        shutil.copy2(wheel, root/'wheelhouse'/wheel.name)
+        shutil.copy2(wheel, root / 'wheelhouse' / wheel.name)
     refresh_manifest(root)
     final = BankruptcyPredictor.load(root)
-    if final.model_version != source.model_version:
-        raise AssertionError('Unexpected model version change')
+    if final.model_version != source.model_version or type(final) is not type(source):
+        raise AssertionError('Unexpected model version/format change')
     print(json.dumps({'status': 'package_built', 'model_version': final.model_version, 'package': str(root),
+                      'format_version': final.metadata['format_version'],
                       'note': 'Run offline clean-environment smoke before archiving/transfer'}))
 
 
