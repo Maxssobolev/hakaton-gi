@@ -245,3 +245,19 @@ class EntityTwoWidthPackageTest(unittest.TestCase):
             self.assertEqual(batch[0], pred.predict(rows[0]))
             expected = model.predict_proba(m[[0, 5, 9]])[:, 1]
             np.testing.assert_allclose(pred.predict_batch(rows[:3]), expected, rtol=0, atol=1e-12)
+            # negative_partner_rule: rows whose close W=32 band partners are all negative are scaled by factor.
+            arr = np.array([[r[f] for f in FEATURES] for r in rows], np.float32)
+            mm = F2.model_matrix(arr, F2.row_hashes(arr), te, ent, widths)
+            hit = (mm[:, names.index('bp_n5')] > 0) & (mm[:, names.index('bp_pos5')] == 0)
+            self.assertTrue(hit.any() and (~hit).any())
+            meta = json.loads((root / 'metadata.json').read_text(encoding='utf-8'))
+            meta['negative_partner_rule'] = {'width': 32, 'min_shared_bands': 5, 'factor': 0.001}
+            write_json(root / 'metadata.json', meta); refresh_manifest(root)
+            ruled = BankruptcyPredictor.load(root)
+            got = ruled.predict_batch(rows, text_counts=texts, batch_size=4)
+            self.assertEqual(got, list(np.where(hit, np.array(batch) * 0.001, batch)))
+            self.assertEqual(got, [ruled.predict(r, text_counts=t) for r, t in zip(rows, texts)])
+            for bad in ({'width': 16, 'min_shared_bands': 5, 'factor': 0.001}, {'width': 32, 'min_shared_bands': 5, 'factor': 0.5}):
+                write_json(root / 'metadata.json', dict(meta, negative_partner_rule=bad)); refresh_manifest(root)
+                with self.assertRaises(ModelLoadError):
+                    BankruptcyPredictor.load(root)

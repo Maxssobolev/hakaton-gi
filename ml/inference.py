@@ -225,6 +225,9 @@ class EntityPredictor(BankruptcyPredictor):
         blend = metadata['blend']
         self._mu_l, self._sd_l = float(blend['mu_lgb_logit']), float(blend['sd_lgb_logit'])
         self._mu_n, self._sd_n, self._w = float(blend['mu_nb']), float(blend['sd_nb']), float(blend['w_nb'])
+        rule = metadata.get('negative_partner_rule')
+        names = list(self._F2.model_features(self._widths))
+        self._neg_rule = None if rule is None else (names.index('bp_n5'), names.index('bp_pos5'), float(rule['factor']))
 
     @classmethod
     def from_package(cls, root, files, meta, num_threads):
@@ -269,6 +272,10 @@ class EntityPredictor(BankruptcyPredictor):
         values = [float(blend[k]) for k in ('mu_lgb_logit', 'sd_lgb_logit', 'mu_nb', 'sd_nb', 'w_nb')]
         if not all(math.isfinite(v) for v in values) or values[1] <= 0 or values[3] <= 0 or not 0 <= values[4] <= 1:
             raise ModelLoadError('Invalid blend constants')
+        rule = meta.get('negative_partner_rule')
+        if rule is not None and (not isinstance(rule, dict) or rule.get('width') != F2.BAND_WIDTH or rule.get('min_shared_bands') != 5
+                                 or not isinstance(rule.get('factor'), float) or not 0 < rule['factor'] <= 1e-3):
+            raise ModelLoadError('Unsupported negative_partner_rule')
         return cls(boosters, meta, num_threads, te, ent, nb)
 
     def _check_bins(self, text_bins, rows):
@@ -308,6 +315,10 @@ class EntityPredictor(BankruptcyPredictor):
                 lg = _logit(scores[ok])
                 s = (1 - self._w) * (lg - self._mu_l) / self._sd_l + self._w * (nb[ok] - self._mu_n) / self._sd_n
                 scores[ok] = 1 / (1 + np.exp(-(self._mu_l + self._sd_l * s)))
+        if self._neg_rule is not None:
+            # Rows whose close TRAIN band partners (>=5 shared W=32 bands) are all negative rank below every other row.
+            n5, pos5, factor = self._neg_rule
+            scores = np.where((matrix[:, n5] > 0) & (matrix[:, pos5] == 0), scores * factor, scores)
         if scores.shape != (len(X),) or not np.isfinite(scores).all() or ((scores < 0) | (scores > 1)).any():
             raise RuntimeError('Model produced invalid positive-class scores')
         return scores

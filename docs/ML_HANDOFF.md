@@ -43,6 +43,10 @@ TE15 (сглаженное среднее target по 15 категориаль�
 скором слов. Для объекта без похожих строк в TRAIN работают обычные табличные признаки. Обучения при загрузке
 и прогнозе нет.
 
+Если в `metadata.json` есть `negative_partner_rule` (релиз R3), то после бленда действует ещё одно правило.
+Объект, у которого все близкие строки TRAIN (≥5 общих полос из 32 столбцов) имеют target=0, получает score×0.001.
+Такой объект ранжируется ниже всех остальных. Для этих объектов score — только порядок, а не вероятность.
+
 Файлы пакета: `model_0.txt`, `model_1.txt`, `model_2.txt`, `te_tables.npz`, `entity_tables.npz`, `nb_weights.npy`,
 `schema.json`, `metadata.json`, `manifest.json`, `ml/__init__.py`, `ml/inference.py`, `ml/features_v2.py`,
 `requirements-inference.txt`, `control_vectors.json`, `smoke_test.py`, этот документ и `wheelhouse/`.
