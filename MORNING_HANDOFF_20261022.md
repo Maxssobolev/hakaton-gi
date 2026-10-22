@@ -13,7 +13,8 @@ rows65 — fallback. R2 **не является строго доказанны�
 
 ## Git и финальная проверка (22.10, 06:21)
 
-- Ветка **`ml/entity-r2-submission3`** (от `ml-quality/activity-xgboost`, d1e9625), push в `origin` без force.
+- Ветка **`ml/entity-r2-submission3`** (от `ml-quality/activity-xgboost`, d1e9625). **Push не выполнен:** его заблокировал
+  защитный механизм Claude Code. Выполнить вручную (без force): `git push -u origin ml/entity-r2-submission3`.
 - Коммит кода, тестов, research-кода и документации: **`6658aa55a8fb9a600f06a2e7484b9a7f2e6c0f8f`**. Этот раздел handoff внесён следующим коммитом
   той же ветки.
 - В Git не входят TRAIN.csv, TEST.csv, text_data.tsv, `artifacts/` (модели, таблицы меток, CSV, архивы) и чужие
